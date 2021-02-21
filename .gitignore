@@ -1,0 +1,11 @@
+.idea
+.vs
+.vscode
+
+*.bak
+*.o
+*.a
+*.la
+*.exe
+
+go.sum
