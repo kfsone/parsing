@@ -18,17 +18,20 @@ func init() {
 	startTime = time.Now()
 }
 
+// Time is used as a wrapper around activities you want timed. If verbose is false,
+// only actions that take longer than 1m will be recorded.
 func Time(label string, verbose bool, action func()) {
 	start := time.Now()
 	action()
 	duration := time.Since(start)
-	if duration/time.Millisecond >= 1.0 || !verbose {
+	if duration/time.Millisecond >= 1.0 || verbose {
 		concurrency.WithMutexLock(&timingMutex, func() {
 			timings[label] += time.Since(start)
 		})
 	}
 }
 
+// ReportTimings will print the current table of timing statistics to Stdout.
 func ReportTimings() {
 	timings["total"] = time.Since(startTime)
 
