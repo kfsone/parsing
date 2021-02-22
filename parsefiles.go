@@ -10,7 +10,7 @@ import (
 // and run the given parsing function on them using a worker pool. Returns when
 // all workers have finished.
 func ParseFiles(extension string, parseFn func(string), pathlist []string) {
-	// Sequence points for backrgound workers.
+	// Sequence points for background workers.
 	var workers sync.WaitGroup
 
 	// Workers who do the initial parse of a file.

@@ -26,13 +26,13 @@ func FindFiles(listedPaths []string, extension string, pathChan chan<- string) {
 
 		// deduplication
 		if _, exists := uniquePaths[toplevelPath]; exists == true {
-			stats.BumpCounter("duplicate_paths", 1)
+			stats.BumpCounter("files.duplicate_paths", 1)
 			continue
 		}
 		uniquePaths[toplevelPath] = true
 
 		// annotate
-		stats.BumpCounter("paths", 1)
+		stats.BumpCounter("files.paths", 1)
 		stats.Info("crawling path: %s", toplevelPath)
 
 		// walk the directory tree
@@ -48,9 +48,9 @@ func FindFiles(listedPaths []string, extension string, pathChan chan<- string) {
 						uniquePaths[path] = true
 						// dispatch
 						pathChan <- path
-						stats.BumpCounter(extension, 1)
+						stats.BumpCounter("files.ext" + extension, 1)
 					} else {
-						stats.BumpCounter("duplicate_paths", 1)
+						stats.BumpCounter("files.duplicate_paths", 1)
 					}
 				}
 				return nil
