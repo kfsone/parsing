@@ -21,27 +21,25 @@ func ParseFiles(extension string, parseFn func(string), pathlist []string) {
 	workQueue := make(chan string, numWorkers+1)
 
 	// Start finding files in the background.
-	go stats.Time("parsing.findfiles", true, func () { FindFiles(pathlist, extension, workQueue) })
+	go stats.Time("findfiles", true, func () { FindFiles(pathlist, extension, workQueue) })
 
 	// Create a set of workers to consume filenames and parse them.
-	stats.Time("parsing.startworkers", true, func () {
-		workers.Add(numWorkers)
-		for i := 0; i < numWorkers; i++ {
-			// Worker implementation
-			go func() {
-				// reduce worker count by one when this function exits.
-				defer workers.Done()
+	workers.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		// Worker implementation
+		go func() {
+			// reduce worker count by one when this function exits.
+			defer workers.Done()
 
-				for filepath := range workQueue {
-					if *stats.Verbose > 1 {
-						stats.Time(filepath, false, func() { parseFn(filepath) })
-					} else {
-						parseFn(filepath)
-					}
+			for filepath := range workQueue {
+				if *stats.Verbose > 1 {
+					stats.Time(filepath, false, func() { parseFn(filepath) })
+				} else {
+					parseFn(filepath)
 				}
-			}()
-		}
-	})
+			}
+		}()
+	}
 
 	// Wait for the work to complete.
 	workers.Wait()

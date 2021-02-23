@@ -15,7 +15,7 @@ import (
 func FindFiles(listedPaths []string, extension string, pathChan chan<- string) {
 	defer close(pathChan)
 
-	uniquePaths := make(map[string]bool)
+	uniquePaths := make(map[string]bool, *Concurrency + 1)
 
 	for _, toplevelPath := range listedPaths {
 		// translate non-absolute paths (including '.') to ProjectPath relative
