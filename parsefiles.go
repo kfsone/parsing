@@ -21,7 +21,7 @@ func ParseFiles(extension string, parseFn func(string), pathlist []string) {
 	workQueue := make(chan string, numWorkers+1)
 
 	// Start finding files in the background.
-	go stats.Time("findfiles", true, func () { FindFiles(pathlist, extension, workQueue) })
+	go FindFiles(pathlist, extension, workQueue)
 
 	// Create a set of workers to consume filenames and parse them.
 	workers.Add(numWorkers)

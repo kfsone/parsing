@@ -2,11 +2,10 @@ package parsing
 
 import (
 	"fmt"
+	"github.com/kfsone/parsing/lib/stats"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/kfsone/parsing/lib/stats"
 )
 
 // FindFiles will iterate across the given list of paths or ".", finding files
@@ -15,7 +14,7 @@ import (
 func FindFiles(listedPaths []string, extension string, pathChan chan<- string) {
 	defer close(pathChan)
 
-	uniquePaths := make(map[string]bool, *Concurrency + 1)
+	uniquePaths := make(map[string]bool, 1)
 
 	for _, toplevelPath := range listedPaths {
 		// translate non-absolute paths (including '.') to ProjectPath relative
@@ -36,28 +35,30 @@ func FindFiles(listedPaths []string, extension string, pathChan chan<- string) {
 		stats.Info("crawling path: %s", toplevelPath)
 
 		// walk the directory tree
-		err := filepath.Walk(toplevelPath,
-			func(path string, info os.FileInfo, e error) error {
-				if e != nil {
-					return e
-				}
-				// match regular files against the desired extension
-				if info.Mode().IsRegular() && strings.HasSuffix(info.Name(), extension) {
-					// deduplicate
-					if _, exists := uniquePaths[path]; exists == false {
-						uniquePaths[path] = true
-						// dispatch
-						pathChan <- path
-						stats.BumpCounter("files.ext" + extension, 1)
-					} else {
-						stats.BumpCounter("files.duplicate_paths", 1)
+		stats.Time("paths.walk", true, func () {
+			err := filepath.Walk(toplevelPath,
+				func(path string, info os.FileInfo, e error) error {
+					if e != nil {
+						return e
 					}
-				}
-				return nil
-			})
-		if err != nil {
-			fmt.Println(err)
-		}
+					// match regular files against the desired extension
+					if strings.HasSuffix(info.Name(), extension) && info.Mode().IsRegular() {
+						// deduplicate
+						if _, exists := uniquePaths[path]; exists == false {
+							uniquePaths[path] = true
+							// dispatch
+							pathChan <- path
+							stats.BumpCounter("files.ext" + extension, 1)
+						} else {
+							stats.BumpCounter("files.duplicate_paths", 1)
+						}
+					}
+					return nil
+				})
+			if err != nil {
+				fmt.Println(err)
+			}
+		})
 	}
 
 	return
